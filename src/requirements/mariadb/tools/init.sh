@@ -1,5 +1,12 @@
 #!/usr/bin/env bash
 
+: "${MYSQL_RUN_DIR:=/run/mysqld}"
+: "${MYSQL_VAR_DIR:=/var/lib/mysql}"
+: "${MYSQL_DATABASE:?Missing MYSQL_DATABASE}"
+: "${MYSQL_USER:?Missing MYSQL_USER}"
+: "${MYSQL_PASSWORD:?Missing MYSQL_PASSWORD}"
+: "${MYSQL_ROOT_PASSWORD:?Missing MYSQL_ROOT_PASSWORD}"
+
 set -euo pipefail
 
 mkdir -p "$MYSQL_RUN_DIR" "$MYSQL_VAR_DIR"
