@@ -26,9 +26,9 @@ if [ ! -d /var/lib/mysql/mysql ]; then
 	mariadb-admin -uroot -p"${MYSQL_ROOT_PASSWORD}" shutdown
 	wait "$pid"
 
-	echo ">> Initialisation terminée."
+	echo ">> Initialisation ended."
 fi
 
-echo ">> Démarrage MariaDB..."
+echo ">> Start MariaDB..."
 exec mysqld --user=mysql --console
 
