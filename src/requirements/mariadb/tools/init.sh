@@ -12,7 +12,7 @@ set -euo pipefail
 mkdir -p "$MYSQL_RUN_DIR" "$MYSQL_VAR_DIR"
 chown -R mysql:mysql "$MYSQL_RUN_DIR" "$MYSQL_VAR_DIR"
 
-if [ ! -d /var/lib/mysql/mysql ]; then
+if [ ! -d "$MYSQL_VAR_DIR/mysql" ]; then
 	echo ">> MariaDB initialisation..."
 
 	mariadb-install-db --user=mysql --datadir="$MYSQL_VAR_DIR"
@@ -25,10 +25,15 @@ if [ ! -d /var/lib/mysql/mysql ]; then
 	done
 
 	mariadb -e "CREATE DATABASE IF NOT EXISTS \`${MYSQL_DATABASE}\`;"
+	echo ">> Database created."
+
 	mariadb -e "CREATE USER IF NOT EXISTS '${MYSQL_USER}'@'%' IDENTIFIED BY '${MYSQL_PASSWORD}';"
 	mariadb -e "GRANT ALL PRIVILEGES ON \`${MYSQL_DATABASE}\`.* TO '${MYSQL_USER}'@'%';"
-	mariadb -uroot -p"${MYSQL_ROOT_PASSWORD}" -e "FLUSH PRIVILEGES;"
+	echo ">> User '$MYSQL_USER' created."
+
 	mariadb -e "ALTER USER 'root'@'localhost' IDENTIFIED BY '${MYSQL_ROOT_PASSWORD}';"
+	echo ">> Setting 'root' password."
+	mariadb -uroot -p"${MYSQL_ROOT_PASSWORD}" -e "FLUSH PRIVILEGES;"
 
 	mariadb-admin -uroot -p"${MYSQL_ROOT_PASSWORD}" shutdown
 	wait "$pid"
