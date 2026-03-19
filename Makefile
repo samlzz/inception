@@ -27,7 +27,13 @@ build:
 re: down up
 
 clean:
-	$(COMPOSE) down -v --rmi local
+	$(COMPOSE) down
+
+fclean:
+	$(COMPOSE) down -v
+
+iclean:
+	$(COMPOSE) down -v --rmi all
 
 ps:
 	$(COMPOSE) ps
