@@ -37,10 +37,20 @@ services:
         depends_on:
             - wordpress
         restart: always
-    
+
 volumes:
     mariadb_data:
+      driver: local
+      driver_opts:
+        type: none
+        device: ~/42/inception/data/mariadb
+        o: bind
     wordpress_data:
+      driver: local
+      driver_opts:
+        type: none
+        device: ~/42/inception/data/wordpress
+        o: bind
 
 networks:
     inception:
