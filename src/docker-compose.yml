@@ -12,6 +12,11 @@ services:
           - mysql_root_password
           - mysql_password
         restart: always
+        healthcheck:
+          test: ["CMD", "nc", "-zv", "mariadb", "3306"]
+          interval: 1s
+          timeout: 5s
+          retries: 10
     
     wordpress:
         container_name: wordpress
