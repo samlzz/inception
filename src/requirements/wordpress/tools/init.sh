@@ -5,15 +5,29 @@ set -euo pipefail
 : "${WP_URL:?Missing WP_URL}"
 : "${WP_TITLE:?Missing WP_TITLE}"
 : "${WP_ADMIN_USER:?Missing WP_ADMIN_USER}"
-: "${WP_ADMIN_PASSWORD:?Missing WP_ADMIN_PASSWORD}"
 : "${WP_ADMIN_EMAIL:?Missing WP_ADMIN_EMAIL}"
 : "${WP_USER:?Missing WP_USER}"
 : "${WP_USER_EMAIL:?Missing WP_USER_EMAIL}"
-: "${WP_USER_PASSWORD:?Missing WP_USER_PASSWORD}"
+: "${WP_DB_HOST:?Missing WP_DB_HOST}"
 : "${MYSQL_DATABASE:?Missing MYSQL_DATABASE}"
 : "${MYSQL_USER:?Missing MYSQL_USER}"
-: "${MYSQL_PASSWORD:?Missing MYSQL_PASSWORD}"
-: "${WP_DB_HOST:?Missing WP_DB_HOST}"
+
+WP_ADMIN_PASSWORD=$(cat /run/secrets/wp_admin_password)
+WP_USER_PASSWORD=$(cat /run/secrets/wp_user_password)
+MYSQL_PASSWORD=$(cat /run/secrets/mysql_password)
+
+if [ -z "$(printf '%s' "$WP_ADMIN_PASSWORD" | tr -d '[:space:]')" ]; then
+	echo ">> ERROR: WP_ADMIN_PASSWORD is empty or only whitespace" >&2
+	exit 1
+fi
+if [ -z "$(printf '%s' "$WP_USER_PASSWORD" | tr -d '[:space:]')" ]; then
+	echo ">> ERROR: WP_USER_PASSWORD is empty or only whitespace" >&2
+	exit 1
+fi
+if [ -z "$(printf '%s' "$MYSQL_PASSWORD" | tr -d '[:space:]')" ]; then
+	echo ">> ERROR: MYSQL_PASSWORD is empty or only whitespace" >&2
+	exit 1
+fi
 
 mkdir -p /run/php "${WP_PATH}"
 chown -R www-data:www-data /run/php "${WP_PATH}"

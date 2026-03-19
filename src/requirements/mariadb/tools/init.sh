@@ -4,8 +4,18 @@
 : "${MYSQL_VAR_DIR:=/var/lib/mysql}"
 : "${MYSQL_DATABASE:?Missing MYSQL_DATABASE}"
 : "${MYSQL_USER:?Missing MYSQL_USER}"
-: "${MYSQL_PASSWORD:?Missing MYSQL_PASSWORD}"
-: "${MYSQL_ROOT_PASSWORD:?Missing MYSQL_ROOT_PASSWORD}"
+
+MYSQL_ROOT_PASSWORD=$(cat /run/secrets/mysql_root_password)
+MYSQL_PASSWORD=$(cat /run/secrets/mysql_password)
+
+if [ -z "$(printf '%s' "$MYSQL_ROOT_PASSWORD" | tr -d '[:space:]')" ]; then
+	echo ">> ERROR: MYSQL_ROOT_PASSWORD is empty or only whitespace" >&2
+	exit 1
+fi
+if [ -z "$(printf '%s' "$MYSQL_PASSWORD" | tr -d '[:space:]')" ]; then
+	echo ">> ERROR: MYSQL_PASSWORD is empty or only whitespace" >&2
+	exit 1
+fi
 
 set -euo pipefail
 
