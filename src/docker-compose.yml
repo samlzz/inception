@@ -50,6 +50,18 @@ services:
             - wordpress
         restart: always
 
+    redis:
+        container_name: redis
+        build: ./requirements/redis
+        image: redis
+        restart: unless-stopped
+        volumes:
+            - redis_data:/data
+        ports:
+            - "6379:6379"
+        networks:
+            - inception
+
 volumes:
     mariadb_data:
       driver: local
@@ -64,6 +76,8 @@ volumes:
         type: none
         device: ~/42/inception/data/wordpress
         o: bind
+    
+    redis_data:
 
 networks:
     inception:

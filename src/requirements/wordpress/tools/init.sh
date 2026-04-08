@@ -61,6 +61,14 @@ if [ ! -f "${WP_PATH}/wp-config.php" ]; then
 		--dbuser="${MYSQL_USER}" \
 		--dbpass="${MYSQL_PASSWORD}" \
 		--dbhost="${WP_DB_HOST}"
+
+    # * Redis Config
+
+    wp plugin install redis-cache --allow-root --path=/var/www/html --quiet
+    wp plugin activate redis-cache --allow-root --path="${WP_PATH}"
+
+	wp config set WP_REDIS_HOST "redis" --allow-root --path="${WP_PATH}" --type=constant
+	wp config set WP_REDIS_PORT "6379" --allow-root --path="${WP_PATH}" --type=constant
 fi
 
 if ! wp core is-installed --allow-root --path="${WP_PATH}"; then
