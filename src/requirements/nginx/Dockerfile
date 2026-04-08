@@ -1,20 +1,32 @@
+# Build stage
+FROM debian:bookworm as cert_builder
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    openssl \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN mkdir -p /etc/nginx/ssl
+
+RUN openssl req -x509 -nodes -days 365 \
+    -newkey rsa:2048 \
+    -keyout /etc/nginx/ssl/inception.key \
+    -out /etc/nginx/ssl/inception.crt \
+    -subj "/C=FR/ST=IDF/L=Paris/O=42/OU=42/CN=${DOMAIN_NAME}"
+
+# Run stage
 FROM debian:bookworm
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
 	nginx \
-	openssl \
 	dumb-init \
-	bash \
 	&& rm -rf /var/lib/apt/lists/*
 
-RUN mkdir -p /etc/nginx/ssl /var/www/html
+
+COPY --from=cert_builder /etc/nginx/ssl/ /etc/nginx/ssl/
 
 COPY conf/default.conf /etc/nginx/conf.d/default.conf
-COPY tools/init.sh /usr/local/bin/init.sh
-
-RUN chmod +x /usr/local/bin/init.sh
 
 EXPOSE 443
 
 ENTRYPOINT ["/usr/bin/dumb-init", "--"]
-CMD ["/usr/local/bin/init.sh"]
+CMD ["nginx", "-g", "daemon off;"]
