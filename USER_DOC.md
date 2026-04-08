@@ -71,8 +71,8 @@ make re
 
 Open your browser and go to:
 
-* https://<login>.42.fr
-* https://<login>.42.fr/wp-admin
+* `https://sliziard.42.fr`
+* `https://sliziard.42.fr/wp-admin`
 
 Ensure the domain resolves to your machine (via `/etc/hosts`).
 
@@ -100,12 +100,6 @@ Files include:
 List running containers:
 
 ```bash
-docker ps
-```
-
-Or:
-
-```bash
 make ps
 ```
 
@@ -131,7 +125,7 @@ All data is stored in Docker volumes:
 * Database → `/home/sliziard/data/mariadb`
 * WordPress files → `/home/sliziard/data/wordpress`
 
-This ensures data is preserved even if containers are removed.
+This ensures data is preserved even if containers or volumes are removed.
 
 ---
 

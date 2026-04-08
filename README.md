@@ -137,5 +137,6 @@ AI tools were used for:
 * Concrete implementation of Docker concepts
 * Debugging container issues
 * Answer some good practice/architecture question
+* Understood some messy errors messages
 
 All generated content was reviewed and adapted manually.

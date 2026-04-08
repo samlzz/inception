@@ -14,7 +14,7 @@ Each service is built from a custom Dockerfile.
 
 * Docker
 * Docker Compose
-* Make
+* Make (optionnal)
 
 ## Project Structure
 
@@ -43,8 +43,8 @@ cd inception
 2) **Create required directories on the host:**
 
 ```bash
-mkdir -p /home/<login>/data/mariadb
-mkdir -p /home/<login>/data/wordpress
+mkdir -p /home/<your_login>/data/mariadb
+mkdir -p /home/<your_login>/data/wordpress
 ```
 
 3) **Configure environment variables:**
@@ -55,7 +55,7 @@ Copy the example file and update values:
 cp .env.example src/.env
 ```
 
-Edit the file and replace `<login>` with your 42 login
+Edit the file and replace `your_login` with your 42 login
 
 4) **Create Docker secrets:**
 
@@ -100,7 +100,7 @@ This will:
 7) **Access the website:**
 
 ```text
-https://<login>.42.fr
+https://<your_login>.42.fr
 ```
 
 A self-signed certificate is used, so your browser will show a warning.
@@ -119,6 +119,16 @@ make logs
 
 ```bash
 make down
+```
+
+### Remove volumes
+```bash
+make fclean
+```
+
+### Removes images
+```bash
+make iclean
 ```
 
 ### Restart
@@ -144,8 +154,8 @@ Volumes:
 
 Mapped to host:
 
-* `/home/sliziard/data/mariadb`
-* `/home/sliziard/data/wordpress`
+* `/home/<your_login>/data/mariadb`
+* `/home/<your_login>/data/wordpress`
 
 ## Container interactions
 
@@ -174,24 +184,25 @@ Services communicate using service names:
 
 ## Initialization scripts
 
-Each service uses an `init.sh` script:
+Services that uses an `init.sh` script:
 
 * MariaDB → database and users creation
 * WordPress → installation via WP-CLI
-* NGINX → TLS certificate generation
 
 Initialization scripts are executed only once:
 
 - MariaDB initializes only if the database directory is empty
-- WordPress installs only if not already configured
-- Nginx generate TLS certificate only once
+- WordPress installs only what are not yet configured
 
 This prevents data from being overwritten on container restart.
+
+* NGINX → use Docker multi stage build approche to generate TLS certificate.
 
 ---
 
 ## Notes
 
+* PID 1 is managed manually (no init flag) with `dumb-init`
 * Containers run a single main process
 * No infinite loops or hacks are used
 * TLS is enforced (HTTPS only)
