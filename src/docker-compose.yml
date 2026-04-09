@@ -71,6 +71,19 @@ services:
             - "8080:8080"
         networks:
             - inception
+    vsftpd:
+        container_name: vsftpd
+        build: ./requirements/vsftpd
+        image: vsftpd
+        restart: unless-stopped
+        environment:
+            FTP_USER: ${FTP_USER}
+            FTP_PWD: ${FTP_PWD}
+        ports:
+            - "21:21"
+            - "10000-10010:10000-10010"
+        volumes:
+            - wordpress_data:/var/www/html
 
 volumes:
     mariadb_data:
