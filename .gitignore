@@ -1,3 +1,10 @@
 **/.env
 data
 secrets/*
+**/.cache
+
+src/requirements/static-site/node_modules
+src/requirements/static-site/dist
+src/requirements/static-site/*lock.json
+
+*.local
