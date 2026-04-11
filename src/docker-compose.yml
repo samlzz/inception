@@ -85,6 +85,16 @@ services:
         volumes:
             - wordpress_data:/var/www/html
 
+    static_site:
+        container_name: static_site
+        build: ./requirements/static-site
+        image: static_site
+        restart: on-failure
+        volumes:
+            - wordpress_data:/var/www/html
+        networks:
+            - inception
+
 volumes:
     mariadb_data:
       driver: local
