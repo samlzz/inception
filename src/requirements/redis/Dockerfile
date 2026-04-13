@@ -1,6 +1,9 @@
-FROM alpine:3.21
+FROM debian:bookworm
 
-RUN apk add --no-cache dumb-init redis
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    redis \
+    dumb-init \
+    && rm -rf /var/lib/apt/lists/*
 
 RUN mkdir -p /data
 VOLUME /data
