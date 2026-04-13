@@ -8,8 +8,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 RUN mkdir -p /data /etc/redis
 COPY conf/redis.conf /etc/redis/redis.conf
 
-VOLUME /data
-
 EXPOSE 6379
 
 ENTRYPOINT ["/usr/bin/dumb-init", "--"]
