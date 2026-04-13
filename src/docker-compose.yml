@@ -43,15 +43,21 @@ services:
     
     nginx:
         container_name: nginx
-        build: ./requirements/nginx
+        build:
+            context: ./requirements/nginx
+            args:
+              DOMAIN_NAME: ${DOMAIN_NAME}
         image: nginx
         env_file: .env
         volumes:
+            - ssl_certs_data:/etc/nginx/ssl
             - wordpress_data:/var/www/html
         ports:
             - "443:443"
         networks:
-            - inception
+            inception:
+                aliases:
+                  - sliziard.42.fr
         depends_on:
             wordpress:
               condition: service_healthy
@@ -80,6 +86,7 @@ services:
             - "8080:8080"
         networks:
             - inception
+
     vsftpd:
         container_name: vsftpd
         build: ./requirements/vsftpd
@@ -93,6 +100,8 @@ services:
             - "10000-10010:10000-10010"
         volumes:
             - wordpress_data:/var/www/html
+        networks:
+            - inception
 
     static_site:
         container_name: static_site
@@ -104,20 +113,36 @@ services:
         networks:
             - inception
 
-    netdata:
-        build: ./requirements/netdata
-        container_name: netdata
+    filestash:
+        container_name: filestash
+        build: ./requirements/filestash
+        image: filestash
         restart: unless-stopped
         ports:
-            - "19999:19999"
+          - "8334:8334"
         volumes:
-            - /var/run/docker.sock:/var/run/docker.sock:ro
-            - /proc:/host/proc:ro
-            - /sys:/host/sys:ro
+          - filestash_data:/app/data/state/
+          - ssl_certs_data:/usr/local/share/ca-certificates
+        environment:
+          - STORAGE_TYPE=ftp
+          - STORAGE_FTP_HOST=vsftpd
+          - STORAGE_FTP_PORT=21
+          - STORAGE_FTP_USER=${FTP_USER}
+          - STORAGE_FTP_PASS=${FTP_PWD}
+          - STORAGE_FTP_ROOT=/var/www/html
         networks:
-            - inception
+          - inception
+        depends_on:
+          - vsftpd
 
 volumes:
+    ssl_certs_data:
+      driver: local
+      driver_opts:
+        type: none
+        device: ~/42/inception/data/certs
+        o: bind
+
     mariadb_data:
       driver: local
       driver_opts:
@@ -137,6 +162,13 @@ volumes:
       driver_opts:
         type: none
         device: ~/42/inception/data/redis
+        o: bind
+
+    filestash_data:
+      driver: local
+      driver_opts:
+        type: none
+        device: ~/42/inception/data/filestash
         o: bind
 
 networks:
