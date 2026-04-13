@@ -64,9 +64,6 @@ if [ ! -f "${WP_PATH}/wp-config.php" ]; then
 
     # * Redis Config
 
-    wp plugin install redis-cache --allow-root --path=/var/www/html --quiet
-    wp plugin activate redis-cache --allow-root --path="${WP_PATH}"
-
 	wp config set WP_REDIS_HOST "redis" --allow-root --path="${WP_PATH}" --type=constant
 	wp config set WP_REDIS_PORT "6379" --allow-root --path="${WP_PATH}" --type=constant
 fi
@@ -81,6 +78,10 @@ if ! wp core is-installed --allow-root --path="${WP_PATH}"; then
 		--admin_user="${WP_ADMIN_USER}" \
 		--admin_password="${WP_ADMIN_PASSWORD}" \
 		--admin_email="${WP_ADMIN_EMAIL}"
+
+        wp plugin install redis-cache --allow-root --path="${WP_PATH}" --quiet
+        wp plugin activate redis-cache --allow-root --path="${WP_PATH}"
+        wp redis enable --allow-root --path="${WP_PATH}"
 else
 	echo ">> WordPress is already installed."
 fi
