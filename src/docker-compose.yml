@@ -124,6 +124,11 @@ volumes:
         o: bind
     
     redis_data:
+      driver: local
+      driver_opts:
+        type: none
+        device: ~/42/inception/data/redis
+        o: bind
 
 networks:
     inception:
