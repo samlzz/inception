@@ -9,7 +9,7 @@ if [[ ! -d "$OUT_DIR" ]]; then
     npm run build
 
     mkdir -p "$OUT_DIR"
-    cp -r 'dist' "$OUT_DIR"
+    cp -r dist/* "$OUT_DIR"
 
     echo "Static site builded"
 fi
