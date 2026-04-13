@@ -13,7 +13,7 @@ services:
           - mysql_password
         restart: always
         healthcheck:
-          test: ["CMD", "nc", "-zv", "mariadb", "3306"]
+          test: ["CMD", "nc", "-zv", "127.0.0.1", "3306"]
           interval: 1s
           timeout: 5s
           retries: 10
@@ -28,12 +28,18 @@ services:
         networks:
             - inception
         depends_on:
-            - mariadb
+            mariadb:
+              condition: service_healthy
         secrets:
           - mysql_password
           - wp_admin_password
           - wp_user_password
         restart: always
+        healthcheck:
+            test: ["CMD", "nc", "-zv", "localhost", "9000"]
+            interval: 5s
+            timeout: 4s
+            retries: 10
     
     nginx:
         container_name: nginx
@@ -47,7 +53,10 @@ services:
         networks:
             - inception
         depends_on:
-            - wordpress
+            wordpress:
+              condition: service_healthy
+            static_site:
+              condition: service_completed_successfully
         restart: always
 
     redis:
