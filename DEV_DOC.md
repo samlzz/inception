@@ -1,27 +1,32 @@
-# Developer Documentation
+# Developer Documentation - Mandatory Part
 
 ## Overview
 
-This project is a Docker-based infrastructure composed of three services:
+This project is a Docker-based infrastructure composed of three core services:
 
-* `nginx` → reverse proxy with TLS
-* `wordpress` → PHP application (php-fpm)
-* `mariadb` → database
+* `nginx` → reverse proxy with TLS termination
+* `wordpress` → PHP application via php-fpm
+* `mariadb` → relational database
 
-Each service is built from a custom Dockerfile.
+Each service is built from a custom Dockerfile using a minimal Debian base image.
 
 ## Prerequisites
 
 * Docker
 * Docker Compose
-* Make (optionnal)
+* Make (optional)
 
 ## Project Structure
 
 ```
 .
 ├── secrets/
+│   ├── mysql_root_password.txt
+│   ├── mysql_password.txt
+│   ├── wp_admin_password.txt
+│   └── wp_user_password.txt
 ├── src/
+│   ├── .env
 │   ├── docker-compose.yml
 │   └── requirements/
 │       ├── mariadb/
@@ -31,6 +36,7 @@ Each service is built from a custom Dockerfile.
 ```
 
 ---
+
 ## Setup from scratch
 
 1) **Clone the repository:**
@@ -49,13 +55,16 @@ mkdir -p /home/<your_login>/data/wordpress
 
 3) **Configure environment variables:**
 
-Copy the example file and update values:
-
 ```bash
 cp .env.example src/.env
 ```
 
-Edit the file and replace `your_login` with your 42 login
+Edit `src/.env` and set:
+- `DOMAIN_NAME=<your_login>.42.fr`
+- `MYSQL_DATABASE=wordpress`
+- `MYSQL_USER=wpuser`
+- `WP_ADMIN_USER=master`
+- `WP_USER=<your_login>`
 
 4) **Create Docker secrets:**
 
@@ -63,22 +72,19 @@ Edit the file and replace `your_login` with your 42 login
 mkdir -p secrets
 ```
 
-Create the following files:
+Create and fill these files with secure passwords:
 
 ```bash
-touch secrets/mysql_root_password.txt
-touch secrets/mysql_password.txt
-touch secrets/wp_admin_password.txt
-touch secrets/wp_user_password.txt
+echo "your_mysql_root_password" > secrets/mysql_root_password.txt
+echo "your_mysql_user_password" > secrets/mysql_password.txt
+echo "your_wp_admin_password" > secrets/wp_admin_password.txt
+echo "your_wp_user_password" > secrets/wp_user_password.txt
 ```
 
-Fill each file with the appropriate password.
-
-⚠️ Do not add these files to version control.
+⚠️ Never commit these files to version control.
 
 5) **Configure local domain resolution:**
 
-Run:
 ```bash
 echo "127.0.0.1 <your_login>.42.fr" | sudo tee -a /etc/hosts
 ```
@@ -89,30 +95,112 @@ echo "127.0.0.1 <your_login>.42.fr" | sudo tee -a /etc/hosts
 make
 ```
 
-This will:
+---
 
-* Build all Docker images
-* Create volumes and network
-* Start all containers
+## Services Configuration
+
+### NGINX & TLS
+
+* Uses multi-stage build to generate self-signed certificates
+* Terminates TLS for all incoming connections
+* Reverse proxies requests to PHP-FPM (WordPress)
+* Enforces HTTPS only
+
+### WordPress
+
+* PHP-FPM runs WordPress on port 9000
+* Connects to MariaDB via network
+* Stores files in persistent volume
+* Uses Docker secrets for database credentials
+* Initialization via WP-CLI (`init.sh`)
+
+### MariaDB
+
+* Initializes databases and users if directory is empty
+* Uses healthcheck to ensure availability before dependent services start
+* Stores data in persistent volume
 
 ---
 
-7) **Access the website:**
+## Data Persistence
 
-```text
-https://<your_login>.42.fr
+### Volumes
+
+| Volume | Purpose | Host Path | Mount Point |
+|--------|---------|-----------|-------------|
+| `mariadb_data` | Database files | `/home/<your_login>/data/mariadb` | `/var/lib/mysql` |
+| `wordpress_data` | WordPress files | `/home/<your_login>/data/wordpress` | `/var/www/html` |
+
+### Data Preservation
+
+* Volumes survive container restarts and recreation
+* `make fclean` removes docker volumes but not your binded directories
+
+---
+
+## Container Interactions
+
+### Access to a Container
+
+```bash
+docker exec -it <service_name> <command_to_run_inside>
 ```
 
-A self-signed certificate is used, so your browser will show a warning.
+### Rebuild a specific service
+
+```bash
+docker compose -f src/docker-compose.yml build <service_name>
+docker compose -f src/docker-compose.yml up -d <service_name>
+```
 
 ---
 
-## Useful commands
+## Networking
+
+A custom bridge network (`inception`) enables:
+
+* Service-to-service communication by name
+* Internal DNS resolution
+* Isolation from host network
+
+Services communicate using:
+```
+mariadb:3306
+wordpress:9000
+nginx (reverse proxy)
+```
+
+---
+
+## Initialization Scripts
+
+### MariaDB (`init.sh`)
+
+* Runs only if `/var/lib/mysql` is empty
+* Creates database and users from `.env`
+* Sets up WordPress user with limited privileges
+* Idempotent design prevents data loss on restart
+
+### WordPress (`init.sh`)
+
+* Runs WP-CLI commands to configure WordPress
+* Creates admin user from secrets
+* Sets site title and URL from `.env`
+* Only runs if WordPress is not already configured
+
+---
+
+## Useful Commands
 
 ### View logs
 
 ```bash
 make logs
+```
+
+View logs for specific service:
+```bash
+docker compose -f src/docker-compose.yml logs -f <service_name>
 ```
 
 ### Stop services
@@ -122,11 +210,13 @@ make down
 ```
 
 ### Remove volumes
+
 ```bash
 make fclean
 ```
 
-### Removes images
+### Remove images
+
 ```bash
 make iclean
 ```
@@ -137,73 +227,17 @@ make iclean
 make re
 ```
 
-### Rebuild a service
+### Check service status
 
 ```bash
-docker compose -f src/docker-compose.yml build <service>
+make ps
 ```
 
 ---
 
-## Data persistence
+## Development Notes
 
-Volumes:
-
-* `mariadb_data` → `/var/lib/mysql`
-* `wordpress_data` → `/var/www/html`
-
-Mapped to host:
-
-* `/home/<your_login>/data/mariadb`
-* `/home/<your_login>/data/wordpress`
-
-## Container interactions
-
-### Access MariaDB
-
-```bash
-docker exec -it mariadb mariadb -uroot -p
-```
-
-### Access WordPress container
-
-```bash
-docker exec -it wordpress bash
-```
-
-## Networking
-
-A custom Docker network defined in docker-compose.yml is used.
-
-Services communicate using service names:
-
-* `mariadb`
-* `wordpress`
-* `nginx`
-
-
-## Initialization scripts
-
-Services that uses an `init.sh` script:
-
-* MariaDB → database and users creation
-* WordPress → installation via WP-CLI
-
-Initialization scripts are executed only once:
-
-- MariaDB initializes only if the database directory is empty
-- WordPress installs only what are not yet configured
-
-This prevents data from being overwritten on container restart.
-
-* NGINX → use Docker multi stage build approche to generate TLS certificate.
-
----
-
-## Notes
-
-* PID 1 is managed manually (no init flag) with `dumb-init`
-* Containers run a single main process
-* No infinite loops or hacks are used
-* TLS is enforced (HTTPS only)
-* Secrets are used for sensitive data
+* PID 1 is managed by `dumb-init` to handle signals properly
+* Each container runs a single main process for clarity
+* Health checks prevent dependent services from starting too early
+* Secrets are mounted as files, not environment variables, for better security
