@@ -13,11 +13,12 @@ services:
           - mysql_password
         restart: always
         healthcheck:
-          test: ["CMD", "nc", "-zv", "127.0.0.1", "3306"]
-          interval: 1s
+          test: ["CMD-SHELL", "mariadb-admin ping -h 127.0.0.1 -uroot -p$(cat /run/secrets/mysql_root_password) --silent"]
           timeout: 5s
+          interval: 5s
           retries: 10
-    
+          start_period: 30s
+
     wordpress:
         container_name: wordpress
         build: ./requirements/wordpress
@@ -37,9 +38,10 @@ services:
         restart: always
         healthcheck:
             test: ["CMD", "nc", "-zv", "localhost", "9000"]
+            timeout: 3s
             interval: 5s
-            timeout: 4s
             retries: 10
+            start_period: 40s
     
     nginx:
         container_name: nginx
