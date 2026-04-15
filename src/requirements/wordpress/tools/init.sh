@@ -63,7 +63,6 @@ if [ ! -f "${WP_PATH}/wp-config.php" ]; then
 		--dbhost="${WP_DB_HOST}"
 
     # * Redis Config
-
 	wp config set WP_REDIS_HOST "redis" --allow-root --path="${WP_PATH}" --type=constant
 	wp config set WP_REDIS_PORT "6379" --allow-root --path="${WP_PATH}" --type=constant
 fi
@@ -78,12 +77,24 @@ if ! wp core is-installed --allow-root --path="${WP_PATH}"; then
 		--admin_user="${WP_ADMIN_USER}" \
 		--admin_password="${WP_ADMIN_PASSWORD}" \
 		--admin_email="${WP_ADMIN_EMAIL}"
-
-        wp plugin install redis-cache --allow-root --path="${WP_PATH}" --quiet
-        wp plugin activate redis-cache --allow-root --path="${WP_PATH}"
-        wp redis enable --allow-root --path="${WP_PATH}"
 else
 	echo ">> WordPress is already installed."
+fi
+
+# * Redis plugin
+if ! wp plugin is-installed redis-cache --allow-root --path="${WP_PATH}" 2>/dev/null; then
+    echo ">> Installing redis-cache plugin..."
+    wp plugin install redis-cache --allow-root --path="${WP_PATH}" --quiet
+fi
+
+if ! wp plugin is-active redis-cache --allow-root --path="${WP_PATH}" 2>/dev/null; then
+    echo ">> Activating redis-cache plugin..."
+    wp plugin activate redis-cache --allow-root --path="${WP_PATH}"
+fi
+
+if ! wp redis status --allow-root --path="${WP_PATH}" 2>/dev/null | grep -q "Status: Connected"; then
+    echo ">> Enabling Redis object cache..."
+    wp redis enable --allow-root --path="${WP_PATH}"
 fi
 
 if wp user list --allow-root --path="${WP_PATH}" --field=user_login | grep -Fxq "${WP_USER}"; then
