@@ -150,13 +150,13 @@ make re
 
 This stops, rebuilds, and restarts all services.
 
-### Remove all data
+### Remove all containers data
 
 ```bash
 make fclean
 ```
 
-⚠️ This deletes all volumes including database and uploaded files. Use with caution.
+⚠️ This will **not** deletes data in your directories.
 
 ### View service status
 
@@ -297,7 +297,7 @@ This is expected with self-signed certificates.
 
 * Check disk space: `df -h /home/sliziard/data/`
 * Verify WordPress directory permissions
-* Check file upload limits in WordPress settings
+* Check file size limits in WordPress settings
 
 ### Filestash not connecting
 

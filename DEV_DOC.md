@@ -118,7 +118,7 @@ make
 * Uses multi-stage build to generate self-signed certificates
 * Terminates TLS for all incoming connections
 * Reverse proxies requests to PHP-FPM (WordPress), Adminer, and static assets
-* Enforces HTTPS only (redirects HTTP to HTTPS)
+* Enforces HTTPS only
 
 ### WordPress
 
