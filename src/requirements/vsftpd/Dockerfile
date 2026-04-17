@@ -4,6 +4,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     vsftpd \
 	dumb-init \
 	bash \
+    netcat-openbsd \
 	&& rm -rf /var/lib/apt/lists/*
 
 COPY conf/vsftpd.conf /etc/vsftpd/vsftpd.conf

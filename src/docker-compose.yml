@@ -98,6 +98,11 @@ services:
             - wordpress_data:/var/www/html
         networks:
             - inception
+        healthcheck:
+            test: ["CMD", "nc", "-zv", "localhost", "21"]
+            timeout: 3s
+            interval: 5s
+            retries: 10
 
     static_site:
         container_name: static_site
@@ -129,7 +134,10 @@ services:
         networks:
           - inception
         depends_on:
-          - vsftpd
+          wordpress:
+            condition: service_healthy
+          vsftpd:
+            condition: service_healthy
 
 volumes:
     ssl_certs_data:
