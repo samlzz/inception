@@ -136,28 +136,28 @@ volumes:
       driver: local
       driver_opts:
         type: none
-        device: ~/42/inception/data/certs
+        device: /home/sliziard/data/certs
         o: bind
 
     mariadb_data:
       driver: local
       driver_opts:
         type: none
-        device: ~/42/inception/data/mariadb
+        device: /home/sliziard/data/mariadb
         o: bind
 
     wordpress_data:
       driver: local
       driver_opts:
         type: none
-        device: ~/42/inception/data/wordpress
+        device: /home/sliziard/data/wordpress
         o: bind
     
     filestash_data:
       driver: local
       driver_opts:
         type: none
-        device: ~/42/inception/data/filestash
+        device: /home/sliziard/data/filestash
         o: bind
 
 networks:
